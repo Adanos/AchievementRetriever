@@ -11,7 +11,7 @@ namespace AchievementRetrieverTests
         [SetUp]
         public void Setup()
         {
-            AchievementResponse achievementResponse = new AchievementResponse() { Achieved = true, Name = "", Description = "" };
+            GameAchievement achievementResponse = new GameAchievement() { IsUnlocked = true, Name = "", Description = "" };
             Achievements = new List<Achievement>()
             {
                 new Achievement(achievementResponse) { Name = "Test 1", Description = "As the Knights conquer the world." },
@@ -32,6 +32,7 @@ namespace AchievementRetrieverTests
             Assert.That(achievementMatrixCreator.Matrix.ContainsKey("Knights"), Is.True);
             Assert.That(achievementMatrixCreator.Matrix.ContainsKey("the Knights"), Is.False);
             Assert.That(achievementMatrixCreator.Matrix.ContainsKey("The Knights"), Is.False);
+            Assert.That(values, Is.Not.Null);
             Assert.That(values.Count, Is.EqualTo(2));
         }
 
@@ -44,6 +45,7 @@ namespace AchievementRetrieverTests
 
             Assert.That(achievementMatrixCreator.Matrix.ContainsKey("Papal State"), Is.True);
             Assert.That(achievementMatrixCreator.Matrix.ContainsKey("Papacy"), Is.False);
+            Assert.That(values, Is.Not.Null);
             Assert.That(values.Count, Is.EqualTo(2));
         }
     }

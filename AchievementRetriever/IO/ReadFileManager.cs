@@ -25,7 +25,7 @@ namespace AchievementRetriever.IO
                 var indexesOfAnd = Enumerable.Range(0, markedDlc.Count).Where(i => markedDlc[i] == Constants.And);
                 var indexesOfOr = Enumerable.Range(0, markedDlc.Count).Where(i => markedDlc[i] == Constants.Or);
 
-                achievements.Add(new Achievement(new AchievementResponse() { Name = words[0], Description = words[1]})
+                achievements.Add(new Achievement(new GameAchievement() { Name = words[0], Description = words[1]})
                 {
                     Countries = words[2].Split(Constants.CountriesSeparator).ToHashSet(),
                     IsRequiredDlc = isRequiredDlc,

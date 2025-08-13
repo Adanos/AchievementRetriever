@@ -4,18 +4,18 @@ using AchievementRetriever.Models;
 
 namespace AchievementRetriever.Filters
 {
-    public class AchievementGrouping(IList<AchievementResponse> achievements)
+    public class AchievementGrouping(IList<GameAchievement> achievements)
     {
-        private IList<AchievementResponse> Achievements { get; } = achievements;
+        private IList<GameAchievement> Achievements { get; } = achievements;
 
-        public IList<AchievementResponse> GetUnlockedAchievements()
+        public IList<GameAchievement> GetUnlockedAchievements()
         {
-            return Achievements.Where(achievement => achievement.Achieved).ToList();
+            return Achievements.Where(achievement => achievement.IsUnlocked == true).ToList();
         }
 
-        public IList<AchievementResponse> GetLockedAchievements()
+        public IList<GameAchievement> GetLockedAchievements()
         {
-            return Achievements.Where(achievement => !achievement.Achieved).ToList();
+            return Achievements.Where(achievement => achievement.IsUnlocked != true).ToList();
         }
     }
 }

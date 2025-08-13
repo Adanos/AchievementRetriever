@@ -8,9 +8,9 @@ namespace AchievementRetriever.Models
         public bool Achieved { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public Achievement(AchievementResponse achievement)
+        public Achievement(GameAchievement achievement)
         {
-            Achieved = achievement.Achieved;
+            Achieved = achievement.IsUnlocked.GetValueOrDefault();
             Name = achievement.Name;
             Description = achievement.Description;
         }

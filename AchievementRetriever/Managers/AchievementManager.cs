@@ -20,7 +20,7 @@ namespace AchievementRetriever.Managers
         private readonly EuropaUniversalisFilesStructureConfiguration _europaUniversalisFilesStructureConfiguration;
         private readonly IAchievementsRetrieving _achievementsRetrieving;
         private readonly FilenameCreator _filenameCreator;
-        private IList<AchievementResponse> AchievementsResponse { get; set; }
+        private IList<GameAchievement> AchievementsResponse { get; set; }
         private ISet<string> _dlcNames;
         
         public IList<Achievement> Achievements { get; private set; }
@@ -51,8 +51,7 @@ namespace AchievementRetriever.Managers
 
                     if (results.Success)
                     {
-                        //AchievementsResponse = results.Achievements;
-                        //AchievementsResponse = results.Statistics.Achievements;
+                        AchievementsResponse = results.Achievements;
                         FilterAchievements();
                         MapAchievements();
                         SaveAchievementsToFile(results.Achievements.FirstOrDefault()?.GameName);
@@ -93,9 +92,6 @@ namespace AchievementRetriever.Managers
                     ?.VisibleRequirements?.HasOneOfDlc?.SelectMany(x => x.Names);
                 Achievements.Add(new Achievement(achievement)
                 {
-                    Achieved = achievement.Achieved,
-                    Description = achievement.Description,
-                    Name = achievement.Name,
                     IsRequiredDlc = (requiredDlcs?.Any() ?? false) || (oneOfDlcRequired?.Any(x => x.Key == SimpleAchievementFileParser.Constants.TokenHasDlc) ?? false),
                     AllRequiredDlcNames = requiredDlcs,
                     OneRequiredOfDlcNames = oneOfDlcRequired?.Where(x => x.Key == SimpleAchievementFileParser.Constants.TokenHasDlc)?.Select(x => x.Value)?.ToList()
