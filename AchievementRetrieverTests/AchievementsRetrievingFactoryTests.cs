@@ -19,18 +19,32 @@ public class AchievementsRetrievingFactoryTests
     [SetUp]
     public void SetUp()
     {
+        var inMemorySettings = new Dictionary<string, string?>
+        {
+            {"SteamAchievementConfiguration:ApplicationId", "fake-key"},
+            {"SteamAchievementConfiguration:AddressApi", "https://fake-url.com"},
+            {"SteamAchievementConfiguration:AuthentificationKey", "fake-auth-key"},
+            {"SteamAchievementConfiguration:SteamId", "1234567890"},
+            {"SteamAchievementConfiguration:Language", "en"}
+        };
+
+        IConfiguration configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(inMemorySettings)
+            .Build();
+
         var services = new ServiceCollection();
         services.AddTransient<HttpClient>();
         services.AddTransient<IAchievementParserDispatcher, AchievementParserDispatcher>();
         services.AddTransient<AchievementSourceConfiguration>();
         services.AddTransient<GogAchievementConfiguration>();
         services.AddTransient<SteamAchievementConfiguration>();
-        services.AddTransient<AchievementRetriever.SteamAchievementsRetrieving>();
+        services.AddTransient<SteamAchievementsRetrieving>();
         services.AddTransient<GogAchievementsRetrieving>();
+        services.AddSingleton<IConfiguration>(configuration);
         _serviceProvider = services.BuildServiceProvider();
     }
     
-    [TestCase(AchievementSource.Steam, typeof(AchievementRetriever.SteamAchievementsRetrieving))]
+    [TestCase(AchievementSource.Steam, typeof(SteamAchievementsRetrieving))]
     [TestCase(AchievementSource.GoG, typeof(GogAchievementsRetrieving))]
     public void GetAchievementsRetrieving_ReturnsCorrectType_WhenSourceIsValid(AchievementSource source, Type expectedType)
     {

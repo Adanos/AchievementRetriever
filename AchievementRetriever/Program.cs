@@ -48,6 +48,9 @@ namespace AchievementRetriever
                     services.AddSingleton<SteamAchievementConfiguration>(); 
                     services.AddSingleton<GogAchievementConfiguration>();   
                     services.AddSingleton<IAchievementParserDispatcher, AchievementParserDispatcher>();
+                    services.AddTransient<SteamAchievementsRetrieving>();
+                    services.AddTransient<GogAchievementsRetrieving>();
+                    services.AddSingleton<IAchievementsRetrievingFactory, AchievementsRetrievingFactory>();
                 });
     }
 }

@@ -6,6 +6,7 @@ using System.Web;
 using AchievementRetriever.JsonParsers;
 using AchievementRetriever.Models.FromApi;
 using AchievementRetriever.Models.FromApi.Steam;
+using Microsoft.Extensions.Configuration;
 
 namespace AchievementRetriever
 {
@@ -15,10 +16,10 @@ namespace AchievementRetriever
         private readonly IAchievementParser _achievementParser;
         private readonly SteamAchievementConfiguration _steamAchievementConfiguration;
 
-        public SteamAchievementsRetrieving(HttpClient httpClient, IAchievementParserDispatcher achievementParserDispatcher, SteamAchievementConfiguration steamAchievementConfiguration)
+        public SteamAchievementsRetrieving(HttpClient httpClient, IAchievementParserDispatcher achievementParserDispatcher, IConfiguration configuration)
         {
             _httpClient = httpClient;
-            _steamAchievementConfiguration = steamAchievementConfiguration;
+            _steamAchievementConfiguration = configuration.GetSection(nameof(SteamAchievementConfiguration)).Get<SteamAchievementConfiguration>();
             _achievementParser = achievementParserDispatcher.GetParser();
         }
 

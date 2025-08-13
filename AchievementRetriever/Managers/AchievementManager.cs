@@ -25,9 +25,9 @@ namespace AchievementRetriever.Managers
         
         public IList<Achievement> Achievements { get; private set; }
 
-        public AchievementManager(IAchievementsRetrieving achievementsRetrieving, IConfiguration configuration)
+        public AchievementManager(IAchievementsRetrievingFactory achievementsRetrievingFactory, IConfiguration configuration)
         {
-            _achievementsRetrieving = achievementsRetrieving;
+            _achievementsRetrieving = achievementsRetrievingFactory.GetAchievementsRetrieving();
             _europaUniversalisFilesStructureConfiguration = configuration.GetSection(nameof(EuropaUniversalisFilesStructureConfiguration)).Get<EuropaUniversalisFilesStructureConfiguration>();
             
             _steamAchievementConfiguration = configuration.GetSection(nameof(SteamAchievementConfiguration)).Get<SteamAchievementConfiguration>();
