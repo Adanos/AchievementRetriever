@@ -4,6 +4,7 @@ namespace AchievementRetriever.Models;
 
 public class GameAchievement
 {
+    [JsonPropertyName("gameName")]
     public string GameName { get; set; }
     [JsonPropertyName("name")]
     public string Name { get; set; }

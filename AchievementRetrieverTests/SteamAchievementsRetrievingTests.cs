@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using Moq.Protected;
 using NUnit.Framework;
 using AchievementRetriever.JsonParsers;
-using AchievementRetriever.Models;
 using AchievementRetriever.Models.FromApi.Steam;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace AchievementRetrieverTests
 {
@@ -20,26 +17,21 @@ namespace AchievementRetrieverTests
     {
         private Mock<IHttpClientFactory> _httpClientFactoryMock;
         private Mock<IAchievementParserDispatcher> _achievementParserDispatcherMock;
-        private IConfiguration _configuration;
+        private IOptions<SteamAchievementConfiguration> _configuration;
 
         [SetUp]
         public void SetUp()
         {
             _httpClientFactoryMock = new Mock<IHttpClientFactory>();
             _achievementParserDispatcherMock = new Mock<IAchievementParserDispatcher>();
-            var inMemorySettings = new Dictionary<string, string?>
+            _configuration = Options.Create(new SteamAchievementConfiguration
             {
-                {"SteamAchievementConfiguration:ApplicationId", "fake-key"},
-                {"SteamAchievementConfiguration:AddressApi", "https://fake-url.com"},
-                {"SteamAchievementConfiguration:AuthentificationKey", "fake-auth-key"},
-                {"SteamAchievementConfiguration:SteamId", "1234567890"},
-                {"SteamAchievementConfiguration:Language", "en"}
-            };
-
-            _configuration = new ConfigurationBuilder()
-                .AddInMemoryCollection(inMemorySettings)
-                .Build();
- 
+                AddressApi = "https://fake-url.com",
+                AuthenticationKey = "fake-auth-key",
+                ApplicationId = "12345",
+                SteamId = "1234567890",
+                Language = "en"
+            });
             _achievementParserDispatcherMock
                 .Setup(x => x.GetParser())
                 .Returns(new SteamAchievementParser());
@@ -49,12 +41,24 @@ namespace AchievementRetrieverTests
         public async Task GetAllAchievementsAsync_ReturnsSuccessResponse()
         {
             // Arrange
-            var expectedResponse = new SteamAchievementResponse
+            var jsonResponse = @"
             {
-                Success = true,
-                StatusCode = HttpStatusCode.OK,
-                PlayerStats = new PlayerStats() { GameName = "gameName", SteamId = "1", Achievements = new List<AchievementResponse>()}
-            };
+                ""playerstats"": {
+                    ""gameName"": ""Test Game"",
+                    ""achievements"": [
+                        {
+                            ""name"": ""achievement_1"",
+                            ""achieved"": 1,
+                            ""description"": ""desc_1""
+                        },
+                        {
+                            ""name"": ""achievement_2"",
+                            ""achieved"": 0,
+                            ""description"": ""desc_2""
+                        }
+                    ]
+                }
+            }";
 
             var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             handlerMock
@@ -67,7 +71,7 @@ namespace AchievementRetrieverTests
                 .ReturnsAsync(new HttpResponseMessage
                 {
                     StatusCode = HttpStatusCode.OK,
-                    Content = new StringContent(JsonSerializer.Serialize(expectedResponse))
+                    Content = new StringContent(jsonResponse)
                 });
 
             var client = new HttpClient(handlerMock.Object);
@@ -120,17 +124,7 @@ namespace AchievementRetrieverTests
         public void GetAllAchievementsAsync_ThrowsException_OnInvalidConfiguration()
         {
             // Arrange
-            var inMemorySettings = new Dictionary<string, string?>
-            {
-                {"SteamAchievementConfiguration:ApplicationId", "fake-key"},
-                {"SteamAchievementConfiguration:AuthentificationKey", "fake-auth-key"},
-                {"SteamAchievementConfiguration:SteamId", "1234567890"},
-                {"SteamAchievementConfiguration:Language", "en"}
-            };
-
-            _configuration = new ConfigurationBuilder()
-                .AddInMemoryCollection(inMemorySettings)
-                .Build();
+            _configuration.Value.AddressApi = null;
             var service = new AchievementRetriever.SteamAchievementsRetrieving(_httpClientFactoryMock.Object.CreateClient(), _achievementParserDispatcherMock.Object, _configuration);
 
             // Act & Assert

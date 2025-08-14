@@ -31,7 +31,7 @@ namespace AchievementRetriever.Managers
             _europaUniversalisFilesStructureConfiguration = configuration.GetSection(nameof(EuropaUniversalisFilesStructureConfiguration)).Get<EuropaUniversalisFilesStructureConfiguration>();
             
             _steamAchievementConfiguration = configuration.GetSection(nameof(SteamAchievementConfiguration)).Get<SteamAchievementConfiguration>();
-            _filenameCreator = new FilenameCreator(_steamAchievementConfiguration);  
+            _filenameCreator = new FilenameCreator(_achievementsRetrieving.GetFlagIsAchieved(), _achievementsRetrieving.GetFilePathToSaveResult());  
         }
 
         public async Task CreateAchievements()

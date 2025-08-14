@@ -1,24 +1,20 @@
-﻿using AchievementRetriever.Models.FromApi.Steam;
-
-namespace AchievementRetriever
+﻿namespace AchievementRetriever
 {
-    class FilenameCreator(SteamAchievementConfiguration steamAchievementConfiguration)
+    class FilenameCreator(bool? isAchievedFlag, string filePathToSaveResult)
     {
-        private readonly SteamAchievementConfiguration SteamAchievementConfiguration = steamAchievementConfiguration;
-
         public string CreateFilename(string gameName, string extension = Constants.CsvExtension)
         {
             string achievements = Constants.Achievements;
-            if (SteamAchievementConfiguration.IsAchieved == true)
+            if (isAchievedFlag == true)
                 achievements = Constants.UnlockedAchievements;
-            else if (SteamAchievementConfiguration.IsAchieved == false)
+            else if (isAchievedFlag == false)
                 achievements = Constants.LockedAchievements;
             return achievements + gameName + extension;
         }
 
         public string CreateFullPath(string gameName, string extension = Constants.CsvExtension)
         {
-            return SteamAchievementConfiguration.FilePathToSaveResult + CreateFilename(gameName, extension);
+            return filePathToSaveResult + CreateFilename(gameName, extension);
         }
     }
 }

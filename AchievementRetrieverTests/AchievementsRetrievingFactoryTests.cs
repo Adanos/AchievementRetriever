@@ -9,6 +9,8 @@ using AchievementRetriever.JsonParsers;
 using AchievementRetriever.Models;
 using AchievementRetriever.Models.FromApi.Gog;
 using AchievementRetriever.Models.FromApi.Steam;
+using Microsoft.Extensions.Options;
+using Moq;
 
 namespace AchievementRetrieverTests;
 
@@ -19,18 +21,26 @@ public class AchievementsRetrievingFactoryTests
     [SetUp]
     public void SetUp()
     {
-        var inMemorySettings = new Dictionary<string, string?>
+        var steamConfig = new SteamAchievementConfiguration
         {
-            {"SteamAchievementConfiguration:ApplicationId", "fake-key"},
-            {"SteamAchievementConfiguration:AddressApi", "https://fake-url.com"},
-            {"SteamAchievementConfiguration:AuthentificationKey", "fake-auth-key"},
-            {"SteamAchievementConfiguration:SteamId", "1234567890"},
-            {"SteamAchievementConfiguration:Language", "en"}
+            AuthenticationKey = "fake-key",
+            AddressApi = "value"
+        };
+        
+        var gogConfig = new GogAchievementConfiguration()
+        {
+            GameId = "fake-key",
+            AddressApi = "value"
         };
 
-        IConfiguration configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(inMemorySettings)
-            .Build();
+        var parserDispatcherMock = new Mock<IAchievementParserDispatcher>();
+        parserDispatcherMock.Setup(p => p.GetParser())
+            .Returns(Mock.Of<IAchievementParser>());
+        
+        var steamOptionsMock = new Mock<IOptions<SteamAchievementConfiguration>>();
+        steamOptionsMock.Setup(o => o.Value).Returns(steamConfig);
+        var gogOptionsMock = new Mock<IOptions<GogAchievementConfiguration>>();
+        gogOptionsMock.Setup(o => o.Value).Returns(gogConfig);
 
         var services = new ServiceCollection();
         services.AddTransient<HttpClient>();
@@ -38,9 +48,15 @@ public class AchievementsRetrievingFactoryTests
         services.AddTransient<AchievementSourceConfiguration>();
         services.AddTransient<GogAchievementConfiguration>();
         services.AddTransient<SteamAchievementConfiguration>();
-        services.AddTransient<SteamAchievementsRetrieving>();
-        services.AddTransient<GogAchievementsRetrieving>();
-        services.AddSingleton<IConfiguration>(configuration);
+        services.AddSingleton(_ => new SteamAchievementsRetrieving(
+            new HttpClient(),
+            parserDispatcherMock.Object,
+            steamOptionsMock.Object));
+        services.AddSingleton(_ => new GogAchievementsRetrieving(
+            new HttpClient(),
+            parserDispatcherMock.Object,
+            gogOptionsMock.Object));
+
         _serviceProvider = services.BuildServiceProvider();
     }
     
@@ -54,10 +70,11 @@ public class AchievementsRetrievingFactoryTests
                 { "AchievementSourceConfiguration:Name", source.ToString() }
             })
             .Build();
-
+        
         var factory = new AchievementsRetrievingFactory(config, _serviceProvider);
+        
         var result = factory.GetAchievementsRetrieving();
-
+        
         Assert.That(result, Is.InstanceOf(expectedType));
     }
 

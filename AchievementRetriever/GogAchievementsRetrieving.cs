@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Linq;
 using System.Net.Http.Headers;
 using System.Net.Http;
 using System.Threading.Tasks;
 using AchievementRetriever.JsonParsers;
 using AchievementRetriever.Models.FromApi;
 using AchievementRetriever.Models.FromApi.Gog;
+using Microsoft.Extensions.Options;
 
 namespace AchievementRetriever
 {
@@ -14,11 +16,11 @@ namespace AchievementRetriever
         private readonly IAchievementParser _achievementParser;
         private readonly GogAchievementConfiguration _gogAchievementConfiguration;
 
-        public GogAchievementsRetrieving(HttpClient httpClient, IAchievementParserDispatcher achievementParserDispatcher, GogAchievementConfiguration gogAchievementConfiguration)
+        public GogAchievementsRetrieving(HttpClient httpClient, IAchievementParserDispatcher achievementParserDispatcher, IOptions<GogAchievementConfiguration> gogConfigOptions)
         {
             _httpClient = httpClient;
             _achievementParser = achievementParserDispatcher.GetParser();
-            _gogAchievementConfiguration = gogAchievementConfiguration;
+            _gogAchievementConfiguration = gogConfigOptions.Value;
         }
 
         public async Task<AchievementsResponse> GetAllAchievementsAsync()
@@ -47,6 +49,7 @@ namespace AchievementRetriever
                 {
                     var content = await achievementsResponse.Content.ReadAsStringAsync();
                     response.Achievements = _achievementParser.Parse(content);
+                    response.GameName = response.Achievements.FirstOrDefault()?.GameName;
                     response.Success = true;
                 }
             }
@@ -75,6 +78,11 @@ namespace AchievementRetriever
         public string GetFilePathToSaveResult()
         {
             return _gogAchievementConfiguration.FilePathToSaveResult;
+        }
+
+        public bool? GetFlagIsAchieved()
+        {
+            return _gogAchievementConfiguration.IsAchieved;
         }
     }
 }

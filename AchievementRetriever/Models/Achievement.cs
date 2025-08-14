@@ -1,5 +1,4 @@
-﻿using AchievementRetriever.Models.FromApi.Steam;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace AchievementRetriever.Models
 {

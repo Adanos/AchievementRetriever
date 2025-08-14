@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
@@ -15,6 +14,7 @@ using AchievementRetriever.JsonParsers;
 using AchievementRetriever.Models;
 using AchievementRetriever.Models.FromApi;
 using AchievementRetriever.Models.FromApi.Gog;
+using Microsoft.Extensions.Options;
 
 namespace AchievementRetrieverTests
 {
@@ -22,7 +22,7 @@ namespace AchievementRetrieverTests
     public class GogAchievementServiceTests
     {
         private Mock<IHttpClientFactory> _httpClientFactoryMock;
-        private GogAchievementConfiguration _configurationMock;
+        private IOptions<GogAchievementConfiguration> _configuration;
         private Mock<IAchievementParserDispatcher> _achievementParserDispatcherMock;
 
         [SetUp]
@@ -30,12 +30,13 @@ namespace AchievementRetrieverTests
         {
             _httpClientFactoryMock = new Mock<IHttpClientFactory>();
             _achievementParserDispatcherMock = new Mock<IAchievementParserDispatcher>();
-            _configurationMock = new GogAchievementConfiguration
+            
+            _configuration = Options.Create(new GogAchievementConfiguration
             {
                 AddressApi = "https://www.gog.com/u/{0}/game/{1}",
                 User = "testUser",
                 GameId = "12345"
-            };
+            });
             
             _achievementParserDispatcherMock
                 .Setup(x => x.GetParser())
@@ -71,7 +72,7 @@ namespace AchievementRetrieverTests
             var client = new HttpClient(handlerMock.Object);
             _httpClientFactoryMock.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(client);
 
-            var service = new GogAchievementsRetrieving(_httpClientFactoryMock.Object.CreateClient(), _achievementParserDispatcherMock.Object, _configurationMock);
+            var service = new GogAchievementsRetrieving(_httpClientFactoryMock.Object.CreateClient(), _achievementParserDispatcherMock.Object, _configuration);
 
             // Act
             var result = await service.GetAllAchievementsAsync();
@@ -103,7 +104,7 @@ namespace AchievementRetrieverTests
             var client = new HttpClient(handlerMock.Object);
             _httpClientFactoryMock.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(client);
 
-            var service = new GogAchievementsRetrieving(_httpClientFactoryMock.Object.CreateClient(), _achievementParserDispatcherMock.Object, _configurationMock);
+            var service = new GogAchievementsRetrieving(_httpClientFactoryMock.Object.CreateClient(), _achievementParserDispatcherMock.Object, _configuration);
 
             // Act
             var result = await service.GetAllAchievementsAsync();
@@ -118,8 +119,8 @@ namespace AchievementRetrieverTests
         public void GetAllAchievements_ReturnsError_OnInvalidUri()
         {
             // Arrange
-            _configurationMock.AddressApi = "invalid-url";
-            var service = new GogAchievementsRetrieving(_httpClientFactoryMock.Object.CreateClient(), _achievementParserDispatcherMock.Object, _configurationMock);
+            _configuration.Value.AddressApi = "invalid-url";
+            var service = new GogAchievementsRetrieving(_httpClientFactoryMock.Object.CreateClient(), _achievementParserDispatcherMock.Object, _configuration);
 
             // Act & Assert
             Assert.That(
@@ -145,7 +146,7 @@ namespace AchievementRetrieverTests
             var client = new HttpClient(handlerMock.Object);
             _httpClientFactoryMock.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(client);
 
-            var service = new GogAchievementsRetrieving(_httpClientFactoryMock.Object.CreateClient(), _achievementParserDispatcherMock.Object, _configurationMock);
+            var service = new GogAchievementsRetrieving(_httpClientFactoryMock.Object.CreateClient(), _achievementParserDispatcherMock.Object, _configuration);
 
             // Act & Assert
             Assert.That(

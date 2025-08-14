@@ -4,7 +4,7 @@
     {
         public const string HeaderJsonType = "application/json",
             ApplicationIdWithQuestionMarkParam = "?appid",
-            AuthentificationKeyParam = "key",
+            AuthenticationKeyParam = "key",
             SteamIdParam = "steamid",
             LanguageParam = "l",
             HeaderOfCsvFile = "Achievement;Description;Country;Is dlc required?;",

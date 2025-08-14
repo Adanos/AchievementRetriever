@@ -36,17 +36,23 @@ namespace AchievementRetriever
             Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((_, config) =>
                 {
-                    config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+                    config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                        .AddEnvironmentVariables()
+                        .AddCommandLine(args);
                 })
-                .ConfigureServices((_, services) =>
+                .ConfigureServices((context, services) =>
                 {
                     services.AddSingleton<HttpClient>();
                     services.AddSingleton<AchievementManager>();
                     services.AddSingleton<SteamAchievementParser>();
                     services.AddSingleton<GogAchievementParser>();
-                    services.AddSingleton<AchievementSourceConfiguration>();  
-                    services.AddSingleton<SteamAchievementConfiguration>(); 
-                    services.AddSingleton<GogAchievementConfiguration>();   
+                    services.AddSingleton<AchievementSourceConfiguration>();
+                    services.Configure<SteamAchievementConfiguration>(
+                        context.Configuration.GetSection(nameof(SteamAchievementConfiguration))
+                    );
+                    services.Configure<GogAchievementConfiguration>(
+                        context.Configuration.GetSection(nameof(GogAchievementConfiguration))
+                    );
                     services.AddSingleton<IAchievementParserDispatcher, AchievementParserDispatcher>();
                     services.AddTransient<SteamAchievementsRetrieving>();
                     services.AddTransient<GogAchievementsRetrieving>();
