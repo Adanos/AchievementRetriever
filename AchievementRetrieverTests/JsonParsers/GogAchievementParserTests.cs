@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text.Json;
 using NUnit.Framework;
 using AchievementRetriever.JsonParsers;
@@ -80,5 +82,24 @@ public class GogAchievementParserTests
         var parser = new GogAchievementParser();
 
         Assert.Throws<Exception>(() => parser.Parse(json));
+    }
+    
+    [Test]
+    public void ParseJsonFromHtmlTests_ParseFileWithTwoDescription_ReturnObject()
+    {
+        var path = Path.Combine("HtmlTestCase", "GogAchievementsTestCase.txt");
+        var fileStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        using var reader = new StreamReader(fileStream);
+        string jsonFromHtml = reader.ReadToEnd();
+
+        var parser = new GogAchievementParser();
+        var result = parser.Parse(jsonFromHtml).ToList();
+        Assert.That(result.Count, Is.EqualTo(2));
+        Assert.That(result.First().Name, Is.EqualTo("Doge Coins"));
+        Assert.That(result.First().Description, Is.EqualTo("Starting as Venice, become the best."));
+        Assert.That(result.First().IsUnlocked, Is.True);
+        Assert.That(result.Last().Name, Is.EqualTo("New achievement"));
+        Assert.That(result.Last().Description, Is.EqualTo("Starting as any Mayan country, conquer the world"));
+        Assert.That(result.Last().IsUnlocked, Is.False);
     }
 }

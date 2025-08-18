@@ -1,33 +1,25 @@
 using System;
-using System.Collections.Generic;
-using System.Text.Json;
 using AchievementRetriever.Models;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace AchievementRetriever.JsonParsers;
 
-public class AchievementParserDispatcher : IAchievementParserDispatcher
+public class AchievementParserDispatcher(
+    IOptions<AchievementSourceConfiguration> configOptions,
+    IServiceProvider serviceProvider)
+    : IAchievementParserDispatcher
 {
-    private readonly IAchievementParser _activeParser;
-
-    public AchievementParserDispatcher(AchievementSourceConfiguration achievementSourceConfiguration)
-    {
-        IDictionary<AchievementSource, IAchievementParser> parsers = new Dictionary<AchievementSource, IAchievementParser>
-        {
-            { AchievementSource.Steam, new SteamAchievementParser() },
-            { AchievementSource.GoG, new GogAchievementParser() }
-        };
-        
-        var source = achievementSourceConfiguration.Name;
-
-        if (!parsers.TryGetValue(source, out _activeParser))
-        {
-            var available = string.Join(", ", parsers.Keys);
-            throw new InvalidOperationException($"Invalid parser '{source}'. Available: {available}");
-        }
-    }
+    private readonly AchievementSourceConfiguration _config = configOptions.Value;
+    private readonly IServiceProvider _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
 
     public IAchievementParser GetParser()
     {
-        return _activeParser;
+        return _config.Name switch
+        {
+            AchievementSource.Steam => _serviceProvider.GetRequiredService<SteamAchievementParser>(),
+            AchievementSource.GoG  => _serviceProvider.GetRequiredService<GogAchievementParser>(),
+            _ => throw new InvalidOperationException($"Unsupported achievement source: {_config.Name}")
+        };
     }
 }
