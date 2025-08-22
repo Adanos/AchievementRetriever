@@ -8,7 +8,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using AchievementRetriever.IO;
 using AchievementRetriever.Models;
-using AchievementRetriever.Models.FromApi.Steam;
 using AchievementRetriever.Models.FromGameStructure;
 using AchievementRetriever.Filters;
 
@@ -16,7 +15,7 @@ namespace AchievementRetriever.Managers
 {
     internal class AchievementManager
     {
-        private readonly SteamAchievementConfiguration _steamAchievementConfiguration;
+        public string GameName { get; set; }
         private readonly EuropaUniversalisFilesStructureConfiguration _europaUniversalisFilesStructureConfiguration;
         private readonly IAchievementsRetrieving _achievementsRetrieving;
         private readonly FilenameCreator _filenameCreator;
@@ -29,9 +28,8 @@ namespace AchievementRetriever.Managers
         {
             _achievementsRetrieving = achievementsRetrievingFactory.GetAchievementsRetrieving();
             _europaUniversalisFilesStructureConfiguration = configuration.GetSection(nameof(EuropaUniversalisFilesStructureConfiguration)).Get<EuropaUniversalisFilesStructureConfiguration>();
-            
-            _steamAchievementConfiguration = configuration.GetSection(nameof(SteamAchievementConfiguration)).Get<SteamAchievementConfiguration>();
-            _filenameCreator = new FilenameCreator(_achievementsRetrieving.GetFlagIsAchieved(), _achievementsRetrieving.GetFilePathToSaveResult());  
+            var source = configuration.GetSection(nameof(AchievementSourceConfiguration)).Get<AchievementSourceConfiguration>().Name;
+            _filenameCreator = new FilenameCreator(source, _achievementsRetrieving.GetFlagIsAchieved(), _achievementsRetrieving.GetFilePathToSaveResult());  
         }
 
         public async Task CreateAchievements()
@@ -54,7 +52,8 @@ namespace AchievementRetriever.Managers
                         AchievementsResponse = results.Achievements;
                         FilterAchievements();
                         MapAchievements();
-                        SaveAchievementsToFile(results.Achievements.FirstOrDefault()?.GameName);
+                        GameName = results.Achievements.FirstOrDefault()?.GameName;
+                        SaveAchievementsToFile();
                     }
                     else
                     {
@@ -67,10 +66,12 @@ namespace AchievementRetriever.Managers
                 }
             }
         }
+
         
-        public void SaveAchievementsToFile(string gameName, IList<Achievement> achievements)
+
+        public void SaveAchievementsToFile(string suffix = "")
         {
-            SaveFileManager saveFileManager = new SaveFileManager(_filenameCreator.CreateFullPath(gameName), _dlcNames, achievements);
+            SaveFileManager saveFileManager = new SaveFileManager(_filenameCreator.CreateFullPath(GameName, suffix: suffix), _dlcNames, Achievements);
             saveFileManager.SaveCsvFile();
         }
 
@@ -103,9 +104,9 @@ namespace AchievementRetriever.Managers
         {
             AchievementGrouping achievementGrouping = new AchievementGrouping(AchievementsResponse);
 
-            if (_steamAchievementConfiguration.IsAchieved == true)
+            if (_achievementsRetrieving.GetFlagIsAchieved() == true)
                 AchievementsResponse = achievementGrouping.GetUnlockedAchievements();
-            else if (_steamAchievementConfiguration.IsAchieved == false)
+            else if (_achievementsRetrieving.GetFlagIsAchieved() == false)
                 AchievementsResponse = achievementGrouping.GetLockedAchievements();
         }
 
@@ -115,12 +116,6 @@ namespace AchievementRetriever.Managers
             var achievements = readFileManager.ReadAchievementsFromFile(files[0]);
             _dlcNames = readFileManager.DlcNames.ToHashSet();
             return achievements;
-        }
-
-        private void SaveAchievementsToFile(string gameName)
-        {
-            SaveFileManager saveFileManager = new SaveFileManager(_filenameCreator.CreateFullPath(gameName), _dlcNames, Achievements);
-            saveFileManager.SaveCsvFile();
         }
     }
 }

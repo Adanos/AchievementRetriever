@@ -1,20 +1,22 @@
-﻿namespace AchievementRetriever
+﻿using AchievementRetriever.Models;
+
+namespace AchievementRetriever
 {
-    class FilenameCreator(bool? isAchievedFlag, string filePathToSaveResult)
+    public class FilenameCreator(AchievementSource source, bool? isAchievedFlag, string filePathToSaveResult)
     {
-        public string CreateFilename(string gameName, string extension = Constants.CsvExtension)
+        public string CreateFilename(string gameName, string extension = Constants.CsvExtension, string suffix = "")
         {
             string achievements = Constants.Achievements;
             if (isAchievedFlag == true)
                 achievements = Constants.UnlockedAchievements;
             else if (isAchievedFlag == false)
                 achievements = Constants.LockedAchievements;
-            return achievements + gameName + extension;
+            return $"{source} {achievements} {gameName}{suffix}{extension}";
         }
 
-        public string CreateFullPath(string gameName, string extension = Constants.CsvExtension)
+        public string CreateFullPath(string gameName, string extension = Constants.CsvExtension, string suffix = "")
         {
-            return filePathToSaveResult + CreateFilename(gameName, extension);
+            return filePathToSaveResult + CreateFilename(gameName, extension, suffix);
         }
     }
 }

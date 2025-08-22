@@ -10,10 +10,11 @@
             HeaderOfCsvFile = "Achievement;Description;Country;Is dlc required?;",
             Separator = ";",
             CountriesSeparator = ",",
+            Updated = "updated",
             CsvExtension = ".csv",
-            Achievements = "Achievements ",
-            UnlockedAchievements = "UnlockedAchievements ",
-            LockedAchievements = "LockedAchievements ",
+            Achievements = "Achievements",
+            UnlockedAchievements = "UnlockedAchievements",
+            LockedAchievements = "LockedAchievements",
             And = "AND",
             Or = "OR";
     }

@@ -27,8 +27,7 @@ namespace AchievementRetriever
             {
                 AchievementMatrixCreator achievementMatrixCreator = new AchievementMatrixCreator(achievementManager.Achievements);
                 achievementMatrixCreator.CreateMatrix();
-                var updatedAchievements = achievementManager.Achievements;
-                achievementManager.SaveAchievementsToFile("updated", updatedAchievements);
+                achievementManager.SaveAchievementsToFile(suffix: Constants.Updated);
             }     
         }
         
