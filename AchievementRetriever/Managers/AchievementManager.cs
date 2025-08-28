@@ -2,7 +2,6 @@
 using SimpleAchievementFileParser;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -15,18 +14,20 @@ namespace AchievementRetriever.Managers
 {
     internal class AchievementManager
     {
-        public string GameName { get; set; }
+        private string GameName { get; set; }
         private readonly EuropaUniversalisFilesStructureConfiguration _europaUniversalisFilesStructureConfiguration;
         private readonly IAchievementsRetrieving _achievementsRetrieving;
         private readonly FilenameCreator _filenameCreator;
+        private readonly IFileService _fileService;
         private IList<GameAchievement> AchievementsResponse { get; set; }
         private ISet<string> _dlcNames;
-        
+
         public IList<Achievement> Achievements { get; private set; }
 
-        public AchievementManager(IAchievementsRetrievingFactory achievementsRetrievingFactory, IConfiguration configuration)
+        public AchievementManager(IAchievementsRetrievingFactory achievementsRetrievingFactory, IFileService fileService, IConfiguration configuration)
         {
             _achievementsRetrieving = achievementsRetrievingFactory.GetAchievementsRetrieving();
+            _fileService = fileService;
             _europaUniversalisFilesStructureConfiguration = configuration.GetSection(nameof(EuropaUniversalisFilesStructureConfiguration)).Get<EuropaUniversalisFilesStructureConfiguration>();
             var source = configuration.GetSection(nameof(AchievementSourceConfiguration)).Get<AchievementSourceConfiguration>().Name;
             _filenameCreator = new FilenameCreator(source, _achievementsRetrieving.GetFlagIsAchieved(), _achievementsRetrieving.GetFilePathToSaveResult());  
@@ -35,11 +36,11 @@ namespace AchievementRetriever.Managers
         public async Task CreateAchievements()
         {
             string pattern = _filenameCreator.CreateFilename(@"*");
-            string[] files = Directory.GetFiles(_achievementsRetrieving.GetFilePathToSaveResult(), pattern, SearchOption.TopDirectoryOnly);
-
-            if (files.Length > 0)
+            var files = _fileService.TryGetFilesFromConfig(_achievementsRetrieving.GetFilePathToSaveResult(), pattern);
+            
+            if (files.Success)
             {
-                Achievements = ReadAchievementsFromFile(files);
+                Achievements = ReadAchievementsFromFile(files.Result);
             }
             else
             {
@@ -67,8 +68,6 @@ namespace AchievementRetriever.Managers
             }
         }
 
-        
-
         public void SaveAchievementsToFile(string suffix = "")
         {
             SaveFileManager saveFileManager = new SaveFileManager(_filenameCreator.CreateFullPath(GameName, suffix: suffix), _dlcNames, Achievements);
@@ -95,7 +94,7 @@ namespace AchievementRetriever.Managers
                 {
                     IsRequiredDlc = (requiredDlcs?.Any() ?? false) || (oneOfDlcRequired?.Any(x => x.Key == SimpleAchievementFileParser.Constants.TokenHasDlc) ?? false),
                     AllRequiredDlcNames = requiredDlcs,
-                    OneRequiredOfDlcNames = oneOfDlcRequired?.Where(x => x.Key == SimpleAchievementFileParser.Constants.TokenHasDlc)?.Select(x => x.Value)?.ToList()
+                    OneRequiredOfDlcNames = oneOfDlcRequired?.Where(x => x.Key == SimpleAchievementFileParser.Constants.TokenHasDlc).Select(x => x.Value).ToList()
                 });
             }
         }
@@ -110,10 +109,10 @@ namespace AchievementRetriever.Managers
                 AchievementsResponse = achievementGrouping.GetLockedAchievements();
         }
 
-        private IList<Achievement> ReadAchievementsFromFile(string[] files)
+        private IList<Achievement> ReadAchievementsFromFile(IEnumerable<string> files)
         {
             ReadFileManager readFileManager = new ReadFileManager();
-            var achievements = readFileManager.ReadAchievementsFromFile(files[0]);
+            var achievements = readFileManager.ReadAchievementsFromFile(files.FirstOrDefault());
             _dlcNames = readFileManager.DlcNames.ToHashSet();
             return achievements;
         }
