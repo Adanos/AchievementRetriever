@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Net.Http;
 using System.Threading.Tasks;
+using AchievementRetriever.IO;
 using AchievementRetriever.JsonParsers;
 using AchievementRetriever.Managers;
 using AchievementRetriever.Models;
@@ -59,6 +60,7 @@ namespace AchievementRetriever
                     services.AddTransient<GogAchievementsRetrieving>();
                     services.AddSingleton<IAchievementParserDispatcher, AchievementParserDispatcher>();
                     services.AddSingleton<IAchievementsRetrievingFactory, AchievementsRetrievingFactory>();
+                    services.AddSingleton<IFileService, FileService>();
                 });
     }
 }

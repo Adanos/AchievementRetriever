@@ -60,4 +60,14 @@ public class FileServiceTests
         Assert.That(result.Success, Is.False);
         Assert.That(result.Error, Is.TypeOf<ArgumentException>());
     }
+    
+    [Test]
+    public void TryGetFilesFromConfig_DirectoryExistsButNoFiles_ReturnsOkWithEmptyCollection()
+    {
+        var result = _service.TryGetFilesFromConfig(_tempDir);
+        
+        Assert.That(result.Success, Is.False, "Expected success because directory exists.");
+        Assert.That(result.Result, Is.Null, "Expected empty collection when directory has no files.");
+        Assert.That(result.Error, Is.TypeOf<FileNotFoundException>());
+    }
 }

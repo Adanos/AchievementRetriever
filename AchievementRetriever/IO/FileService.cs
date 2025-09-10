@@ -18,7 +18,10 @@ public class FileService : IFileService
                 return ResultOfReadingFile<IEnumerable<string>>.Fail(new DirectoryNotFoundException($"Directory not found: {directoryPath}"));
 
             var files = Directory.GetFiles(directoryPath, searchPattern, searchOption);
-            return ResultOfReadingFile<IEnumerable<string>>.Ok(files);
+            
+            return files.Length == 0 
+                ? ResultOfReadingFile<IEnumerable<string>>.Fail(new FileNotFoundException($"No files found in directory: {directoryPath} with pattern: {searchPattern}")) 
+                : ResultOfReadingFile<IEnumerable<string>>.Ok(files);
         }
         catch (Exception ex)
         {
