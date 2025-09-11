@@ -11,7 +11,7 @@ namespace AchievementRetriever
                 achievements = Constants.UnlockedAchievements;
             else if (isAchievedFlag == false)
                 achievements = Constants.LockedAchievements;
-            return $"{source} {achievements} {gameName} {suffix}{extension}";
+            return $"{source} {achievements} {gameName}{suffix}{extension}";
         }
 
         public string CreateFullPath(string gameName, string extension = Constants.CsvExtension, string suffix = "")

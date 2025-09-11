@@ -12,7 +12,7 @@ using AchievementRetriever.Models.FromApi.Steam;
 
 namespace AchievementRetriever
 {
-    class Program
+    public class Program
     {
         static async Task Main(string[] args)
         {
@@ -32,7 +32,7 @@ namespace AchievementRetriever
             }     
         }
         
-        static IHostBuilder CreateHostBuilder(string[] args) =>
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((_, config) =>
                 {

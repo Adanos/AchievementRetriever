@@ -12,7 +12,7 @@ using AchievementRetriever.Filters;
 
 namespace AchievementRetriever.Managers
 {
-    internal class AchievementManager
+    public class AchievementManager
     {
         private string GameName { get; set; }
         private readonly EuropaUniversalisFilesStructureConfiguration _europaUniversalisFilesStructureConfiguration;
